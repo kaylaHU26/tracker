@@ -20,7 +20,6 @@
   --radius: 14px;
   --shadow: 0 2px 12px rgba(74,55,40,.06);
   --nav-h: 62px;
-  --input-h: 52px;
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -36,18 +35,18 @@ body{
 #app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
 .page{display:none;flex-direction:column;flex:1;overflow:hidden}
 .page.active{display:flex}
-.header{padding:20px 20px 8px;flex-shrink:0}
+.header{padding:20px 20px 8px;flex-shrink:0;display:flex;justify-content:space-between;align-items:flex-start}
 .header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
 .header .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.header .date-nav{font-size:13px;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none}
+.header .date-nav:active{opacity:.7}
 .content{flex:1;overflow-y:auto;padding:0 16px 12px;-webkit-overflow-scrolling:touch}
 .content::-webkit-scrollbar{width:0}
 
-/* Cards */
 .card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
 .card-row{display:flex;gap:10px}
 .card-row .card{flex:1}
 
-/* Buttons */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;
   padding:10px 20px;border-radius:24px;border:none;font-size:15px;
@@ -59,7 +58,6 @@ body{
 .btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
 .btn-sm{padding:6px 14px;font-size:13px;border-radius:16px}
 
-/* Inputs */
 .input{
   width:100%;padding:12px 16px;border-radius:24px;border:1.5px solid transparent;
   background:var(--card);font-size:15px;color:var(--text);outline:none;
@@ -68,18 +66,13 @@ body{
 .input:focus{border-color:var(--accent)}
 .input::placeholder{color:var(--muted)}
 
-/* Bottom bar */
 .bottom-bar{
   flex-shrink:0;background:var(--bg);border-top:1px solid rgba(74,55,40,.06);
   padding-bottom:var(--safe-b);
 }
 .input-row{display:flex;gap:8px;padding:10px 16px;align-items:center}
 
-/* Tab bar */
-.tab-bar{
-  display:flex;justify-content:space-around;height:var(--nav-h);
-  padding:0 8px;
-}
+.tab-bar{display:flex;justify-content:space-around;height:var(--nav-h);padding:0 8px}
 .tab{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;flex:1;cursor:pointer;color:var(--muted);transition:color .2s;
@@ -110,19 +103,20 @@ body{
 .record-item .amount.income{color:var(--accent2)}
 .date-group{margin-top:14px}
 .date-group .date-label{font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.del-btn{font-size:11px;color:var(--muted);cursor:pointer;margin-left:10px;flex-shrink:0}
+.del-btn:active{color:var(--danger)}
 
 /* Thought */
 .thought-item{padding:14px 0;border-bottom:1px solid rgba(74,55,40,.04)}
-.thought-item .time{font-size:11px;color:var(--muted);margin-bottom:4px}
+.thought-item .time{font-size:11px;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between}
 .thought-item .text{font-size:15px;line-height:1.6;white-space:pre-wrap}
 .thought-item .imgs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .thought-item .imgs img{width:80px;height:80px;object-fit:cover;border-radius:10px;cursor:pointer}
 
-/* Body log */
+/* Body */
 .body-card{text-align:center}
 .body-card .big-num{font-size:36px;font-weight:800;letter-spacing:-1px}
 .body-card .unit{font-size:14px;color:var(--muted)}
-.progress-ring{width:80px;height:80px;margin:8px auto}
 .water-btn{width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;font-size:28px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 .water-btn:active{opacity:.7}
 .meal-item{padding:10px 0;border-bottom:1px solid rgba(74,55,40,.04)}
@@ -164,9 +158,7 @@ body{
 .img-pending img{width:32px;height:32px;object-fit:cover;border-radius:8px}
 .img-pending .remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;line-height:18px;text-align:center;cursor:pointer}
 
-/* History charts */
-.hist-toggle{font-size:12px;color:var(--accent);cursor:pointer;margin-top:10px;user-select:none}
-.hist-toggle:active{opacity:.7}
+/* Charts */
 .chart-wrap{padding-top:8px}
 .chart-row{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:11px}
 .chart-date{width:38px;text-align:right;color:var(--muted);flex-shrink:0}
@@ -175,6 +167,10 @@ body{
 .chart-bar.sleep-bar{background:linear-gradient(90deg,#C27A5A,#D4956E)}
 .chart-bar.water-bar{background:linear-gradient(90deg,#7BA4B5,#8FB8C8)}
 .chart-val{width:42px;font-size:11px;color:var(--muted);flex-shrink:0}
+
+/* Sync status */
+.sync-status{font-size:11px;color:var(--muted);margin-top:4px}
+.sync-status.ok{color:var(--accent2)}
 </style>
 </head>
 <body>
@@ -191,7 +187,6 @@ const DB = {
   default(){return{finance:[],thoughts:[],body:{sleep:[],water:{},meals:[]}}}
 };
 
-// IndexedDB for images
 const IMG = {
   _db:null,
   async db(){
@@ -246,121 +241,117 @@ const SYNC_KEY='tracker_sync_cfg';
 function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_KEY))||{}}catch(e){return{}}}
 function saveSyncCfg(c){localStorage.setItem(SYNC_KEY,JSON.stringify(c))}
 
-async function ghApi(path,opts={}){
+function ghAuthHeaders(){
   const cfg=syncCfg();
-  if(!cfg.token||!cfg.owner||!cfg.repo)throw new Error('未配置同步');
-  const url=`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`;
-  const headers={'Authorization':`Bearer ${cfg.token}`,'Accept':'application/vnd.github.v3+json'};
-  if(opts.body){headers['Content-Type']='application/json'}
-  const res=await fetch(url,{method:opts.method||'GET',headers,body:opts.body||undefined});
-  if(!res.ok){
-    const err=await res.json().catch(()=>({}));
-    if(res.status===404)return null;
-    throw new Error(err.message||`GitHub API ${res.status}`);
-  }
+  if(!cfg.token)throw new Error('未配置同步');
+  return {
+    'Authorization':'Bearer '+cfg.token,
+    'Accept':'application/vnd.github.v3+json'
+  };
+}
+
+async function ghApi(method, path, body){
+  const cfg=syncCfg();
+  if(!cfg.token||!cfg.owner||!cfg.repo)throw new Error('请先配置同步');
+  const url='https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/contents/'+path;
+  const headers=ghAuthHeaders();
+  const opts={method,headers};
+  if(body){headers['Content-Type']='application/json';opts.body=JSON.stringify(body)}
+  const res=await fetch(url,opts);
+  if(res.status===404)return null;
   if(res.status===204)return null;
+  if(!res.ok){
+    // Check if rate limited
+    let msg='HTTP '+res.status;
+    try{
+      const e=await res.json();
+      if(e.message)msg=e.message;
+    }catch(_){}
+    throw new Error(msg);
+  }
   return res.json();
 }
 
-async function syncPull(){
-  const cfg=syncCfg();
-  if(!cfg.token||!cfg.owner||!cfg.repo)throw new Error('请在"我"页面配置同步');
+function mergeData(local,remote){
+  const seen=new Map();
+  for(const arr of [local.finance,local.thoughts,local.body.sleep,local.body.meals])
+    for(const r of arr)seen.set(r.id,r);
+  for(const arr of [remote.finance,remote.thoughts,remote.body.sleep,remote.body.meals])
+    for(const r of arr)seen.set(r.id,r);
+  const out={finance:[],thoughts:[],body:{sleep:[],water:{},meals:[]}};
+  for(const r of seen.values()){
+    if(r.hasOwnProperty('amount'))out.finance.push(r);
+    else if(r.hasOwnProperty('quality'))out.body.sleep.push(r);
+    else if(r.hasOwnProperty('meal'))out.body.meals.push(r);
+    else out.thoughts.push(r);
+  }
+  out.body.water={...local.body.water};
+  for(const [k,v]of Object.entries(remote.body.water||{}))
+    out.body.water[k]=Math.max(out.body.water[k]||0,v);
+  for(const k of['finance','thoughts'])out[k].sort((a,b)=>a.ts-b.ts);
+  out.body.sleep.sort((a,b)=>a.ts-b.ts);
+  out.body.meals.sort((a,b)=>a.ts-b.ts);
+  return out;
+}
 
-  // Pull data.json
+async function syncPull(){
   let remote=null;
   try{
-    const f=await ghApi('data.json');
+    const f=await ghApi('GET','data.json');
     if(f&&f.content){
       const json=atob(f.content.replace(/\s/g,''));
       remote=JSON.parse(json);
     }
-  }catch(e){/* file not found, start fresh */}
+  }catch(e){/* first sync */}
 
-  // Pull images we don't have locally
   if(remote){
+    // Pull images
     const localIds=new Set(await IMG.getAllIds());
     if(remote._imgs){
-      for(const [id,b64] of Object.entries(remote._imgs)){
+      for(const [id,b64]of Object.entries(remote._imgs)){
         if(!localIds.has(id)){
           try{
-            const byteStr=atob(b64);
-            const arr=new Uint8Array(byteStr.length);
-            for(let i=0;i<byteStr.length;i++)arr[i]=byteStr.charCodeAt(i);
+            const bin=atob(b64);
+            const arr=new Uint8Array(bin.length);
+            for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
             await IMG.save(id,new Blob([arr]));
           }catch(e){/* skip bad image */}
         }
       }
     }
     delete remote._imgs;
-  }
-
-  // Merge: remote wins for same ID, local keeps items not in remote
-  if(remote){
     const merged=mergeData(data,remote);
-    data=merged;
-    save();
-    return true;
+    if(JSON.stringify(merged)!==JSON.stringify(data)){
+      data=merged;save();return true;
+    }
   }
   return false;
 }
 
-function mergeData(local,remote){
-  const have=new Map();
-  // index local by id
-  for(const arr of [local.finance,local.thoughts,local.body.sleep,local.body.meals]){
-    for(const r of arr)have.set(r.id,r);
-  }
-  // remote overwrites or adds
-  for(const arr of [remote.finance,remote.thoughts,remote.body.sleep,remote.body.meals]){
-    for(const r of arr)have.set(r.id,r);
-  }
-  // Rebuild
-  const out={finance:[],thoughts:[],body:{sleep:[],water:{},meals:[]}};
-  for(const [id,r]of have){
-    if(r.hasOwnProperty('amount'))out.finance.push(r);
-    else if(r.hasOwnProperty('imgIds')||(r.hasOwnProperty('text')&&!r.hasOwnProperty('meal')))out.thoughts.push(r);
-    else if(r.hasOwnProperty('quality'))out.body.sleep.push(r);
-    else if(r.hasOwnProperty('meal'))out.body.meals.push(r);
-  }
-  // Merge water (object, take higher values)
-  out.body.water={...local.body.water};
-  for(const [k,v]of Object.entries(remote.body.water||{})){
-    out.body.water[k]=Math.max(out.body.water[k]||0,v);
-  }
-  // Sort by ts
-  for(const k of ['finance','thoughts'])out[k].sort((a,b)=>a.ts-b.ts);
-  out.body.sleep.sort((a,b)=>a.ts-b.ts);
-  out.body.meals.sort((a,b)=>a.ts-b.ts);
-  return out;
-}
-
 async function syncPush(){
   const cfg=syncCfg();
-  if(!cfg.token||!cfg.owner||!cfg.repo)throw new Error('请在"我"页面配置同步');
+  if(!cfg.token||!cfg.owner||!cfg.repo)return;
 
-  // Build payload: data + base64 images
-  const payload={...data,_imgs:{}};
+  const payload=JSON.parse(JSON.stringify(data));
+  payload._imgs={};
   const imgIds=await IMG.getAllIds();
   for(const id of imgIds){
     const blob=await IMG.get(id);
     if(blob){
       const buf=await blob.arrayBuffer();
       const arr=new Uint8Array(buf);
-      let b64='';
-      for(let i=0;i<arr.length;i++)b64+=String.fromCharCode(arr[i]);
-      payload._imgs[id]=btoa(b64);
+      let bin='';
+      for(let i=0;i<arr.length;i++)bin+=String.fromCharCode(arr[i]);
+      payload._imgs[id]=btoa(bin);
     }
   }
 
-  const json=JSON.stringify(payload);
-  const b64= btoa(unescape(encodeURIComponent(json)));
-  const body=JSON.stringify({message:'sync',content:b64});
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const existing=await ghApi('GET','data.json');
+  const bodyObj={message:'sync',content};
+  if(existing&&existing.sha)bodyObj.sha=existing.sha;
 
-  // Check if file exists (need sha)
-  const existing=await ghApi('data.json');
-  if(existing&&existing.sha)body=JSON.stringify({message:'sync',content:b64,sha:existing.sha});
-
-  await ghApi('data.json',{method:'PUT',body});
+  await ghApi('PUT','data.json',bodyObj);
 }
 
 let syncTimer=null;
@@ -369,7 +360,7 @@ function autoSyncPush(){
   if(!cfg.token)return;
   clearTimeout(syncTimer);
   syncTimer=setTimeout(async()=>{
-    try{await syncPush();console.log('synced');}catch(e){console.log('sync failed',e.message)}
+    try{await syncPush()}catch(e){/* silent */}
   },2000);
 }
 
@@ -379,10 +370,11 @@ let activeTab='finance';
 let financeCat='expense';
 let financeCatType='餐饮';
 let bodySubTab='sleep';
-let sleepHistOpen=false;
-let waterHistOpen=false;
+let sleepHistOpen=true;
+let waterHistOpen=true;
 let pendingThoughtFile=null;
 let pendingMealFile=null;
+let viewDate=null; // null = today, else Date object for history browsing
 
 const cats=['餐饮','交通','购物','娱乐','日用','其他'];
 const meals=['breakfast','lunch','dinner','snack'];
@@ -404,12 +396,18 @@ function fmtDate(ts){
   if(d.toDateString()===now.toDateString())return '今天';
   const y=new Date(now);y.setDate(y.getDate()-1);
   if(d.toDateString()===y.toDateString())return '昨天';
-  return `${d.getMonth()+1}月${d.getDate()}日`;
+  return (d.getMonth()+1)+'月'+d.getDate()+'日';
 }
 
-function fmtTime(ts){const d=new Date(ts);return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function fmtTime(ts){const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 
-function fmtFullDate(ts){const d=new Date(ts);return `${d.getMonth()+1}/${d.getDate()}`}
+function fmtFullDate(ts){const d=new Date(ts);return (d.getMonth()+1)+'/'+d.getDate()}
+
+function dateKey(d){return d.toDateString()}
+
+function today(){return dateKey(new Date())}
+
+function viewDateKey(){return viewDate?dateKey(viewDate):today()}
 
 // ============ RENDER ============
 function render(){
@@ -419,27 +417,38 @@ function render(){
     renderPage('thoughts','💭','想法',renderThoughts())+
     renderPage('body','🌿','身体',renderBody())+
     renderPage('me','👤','我',renderMe())+
-    `<div class="bottom-bar">
-      <div class="input-row">${renderInputRow()}</div>
-      <div class="tab-bar">
-        ${['finance','thoughts','body','me'].map(t=>`
-          <div class="tab${activeTab===t?' active':''}" data-tab="${t}">
-            <span class="icon">${t==='finance'?'💰':t==='thoughts'?'💭':t==='body'?'🌿':'👤'}</span>
-            <span class="label">${t==='finance'?'记账':t==='thoughts'?'想法':t==='body'?'身体':'我'}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>`;
+    '<div class="bottom-bar">'+
+      '<div class="input-row">'+renderInputRow()+'</div>'+
+      '<div class="tab-bar">'+
+        ['finance','thoughts','body','me'].map(t=>
+          '<div class="tab'+(activeTab===t?' active':'')+'" data-tab="'+t+'">'+
+            '<span class="icon">'+(t==='finance'?'💰':t==='thoughts'?'💭':t==='body'?'🌿':'👤')+'</span>'+
+            '<span class="label">'+(t==='finance'?'记账':t==='thoughts'?'想法':t==='body'?'身体':'我')+'</span>'+
+          '</div>'
+        ).join('')+
+      '</div>'+
+    '</div>';
   bindTabs();
   bindInput();
   bindMeActions();
 }
 
 function renderPage(id,icon,title,body){
-  return `<div class="page${activeTab===id?' active':''}" id="page-${id}">
-    <div class="header"><h1>${title}</h1>${id==='finance'?'<div class="sub">本月收支</div>':id==='body'?'<div class="sub">今日记录</div>':''}</div>
-    <div class="content" id="content-${id}">${body}</div>
-  </div>`;
+  var h='<div class="header"><div><h1>'+title+'</h1>';
+  if(id==='finance')h+='<div class="sub">本月收支</div>';
+  else if(id==='body')h+='<div class="sub">'+ (viewDate?fmtDate(viewDate.getTime()):'今天') +'</div>';
+  else h+='<div class="sub"></div>';
+  h+='</div>';
+  // Date nav for body tab
+  if(id==='body'){
+    h+='<div class="date-nav">'+
+      '<span id="datePrev">‹</span>'+
+      '<span id="dateToday" style="margin:0 6px;font-size:12px">'+(viewDate?fmtDate(viewDate.getTime()):'今天')+'</span>'+
+      '<span id="dateNext">›</span>'+
+    '</div>';
+  }
+  h+='</div>';
+  return '<div class="page'+(activeTab===id?' active':'')+'" id="page-'+id+'">'+h+'<div class="content" id="content-'+id+'">'+body+'</div></div>';
 }
 
 // ---- Finance ----
@@ -459,142 +468,133 @@ function renderFinance(){
     grouped[k].push(r);
   });
 
-  let list='';
+  var list='';
   for(const [date,items]of Object.entries(grouped)){
-    list+=`<div class="date-group"><div class="date-label">${date}</div>`;
+    list+='<div class="date-group"><div class="date-label">'+date+'</div>';
     items.forEach(r=>{
-      list+=`<div class="record-item">
-        <div class="info">
-          <div style="font-size:14px">${r.note||r.cat}</div>
-          <div class="cat">${r.cat} · ${fmtTime(r.ts)}</div>
-        </div>
-        <div class="amount ${r.type}">${r.type==='expense'?'-':'+'}¥${r.amount.toFixed(2)}</div>
-      </div>`;
+      list+='<div class="record-item">'+
+        '<div class="info">'+
+          '<div style="font-size:14px">'+escHtml(r.note||r.cat)+'</div>'+
+          '<div class="cat">'+r.cat+' · '+fmtTime(r.ts)+'</div>'+
+        '</div>'+
+        '<div class="amount '+r.type+'">'+(r.type==='expense'?'-':'+')+'¥'+r.amount.toFixed(2)+'</div>'+
+        '<span class="del-btn" data-del-fin="'+r.id+'">删</span>'+
+      '</div>';
     });
     list+='</div>';
   }
 
-  return `
-    <div class="card-row">
-      <div class="card amount-card"><div class="label">本月支出</div><div class="value expense">¥${totalExp.toFixed(2)}</div></div>
-      <div class="card amount-card"><div class="label">本月收入</div><div class="value income">¥${totalInc.toFixed(2)}</div></div>
-    </div>
-    <div class="cat-list">
-      ${cats.map(c=>`<span class="cat-chip${financeCatType===c?' selected':''}" data-cat="${c}">${c}</span>`).join('')}
-    </div>
-    ${list||'<div style="text-align:center;color:var(--muted);padding:40px 0">还没有记录<br>在下方输入金额和备注开始记账吧</div>'}
-  `;
+  return ''+
+    '<div class="card-row">'+
+      '<div class="card amount-card"><div class="label">本月支出</div><div class="value expense">¥'+totalExp.toFixed(2)+'</div></div>'+
+      '<div class="card amount-card"><div class="label">本月收入</div><div class="value income">¥'+totalInc.toFixed(2)+'</div></div>'+
+    '</div>'+
+    '<div class="cat-list">'+
+      cats.map(c=>'<span class="cat-chip'+(financeCatType===c?' selected':'')+'" data-cat="'+c+'">'+c+'</span>').join('')+
+    '</div>'+
+    (list||'<div style="text-align:center;color:var(--muted);padding:40px 0">还没有记录<br>在下方输入金额和备注开始记账吧</div>');
 }
 
 // ---- Thoughts ----
 function renderThoughts(){
   if(!data.thoughts.length)return '<div style="text-align:center;color:var(--muted);padding:40px 0">还没有想法<br>记录你的第一个想法吧</div>';
-  return [...data.thoughts].reverse().map(t=>`
-    <div class="thought-item">
-      <div class="time">${fmtDate(t.ts)} ${fmtTime(t.ts)}</div>
-      <div class="text">${escHtml(t.text)}</div>
-      ${t.imgIds?.length?`<div class="imgs">${t.imgIds.map(id=>`<img src="" data-img="${id}" onclick="loadImg(this,'${id}')" alt="">`).join('')}</div>`:''}
-      <div style="text-align:right;margin-top:4px"><span style="font-size:11px;color:var(--muted);cursor:pointer" data-del-thought="${t.id}">删除</span></div>
-    </div>
-  `).join('');
+  return [...data.thoughts].reverse().map(t=>
+    '<div class="thought-item">'+
+      '<div class="time"><span>'+fmtDate(t.ts)+' '+fmtTime(t.ts)+'</span><span class="del-btn" data-del-thought="'+t.id+'">删除</span></div>'+
+      '<div class="text">'+escHtml(t.text)+'</div>'+
+      (t.imgIds?.length?'<div class="imgs">'+t.imgIds.map(id=>'<img src="" data-img="'+id+'" onclick="loadImg(this,\''+id+'\')" alt="">').join('')+'</div>':'')+
+    '</div>'
+  ).join('');
 }
 
 // ---- Body ----
 function renderBody(){
-  const today=new Date().toDateString();
-  const todayWater=data.body.water[today]||0;
-  const todaySleep=data.body.sleep.filter(s=>new Date(s.ts).toDateString()===today);
-  const todayMeals=data.body.meals.filter(m=>new Date(m.ts).toDateString()===today);
-  const waterPct=Math.min(100,Math.round(todayWater/2000*100));
+  const dk=viewDateKey();
+  const dayWater=data.body.water[dk]||0;
+  const daySleep=data.body.sleep.filter(s=>dateKey(new Date(s.ts))===dk);
+  const dayMeals=data.body.meals.filter(m=>dateKey(new Date(m.ts))===dk);
+  const waterPct=Math.min(100,Math.round(dayWater/2000*100));
 
-  let sleepHtml='';
-  todaySleep.forEach(s=>{
-    sleepHtml+=`<div style="font-size:13px;margin-top:4px">${s.hours}h · ${s.quality} · ${fmtTime(s.ts)} <span style="color:var(--muted);cursor:pointer;font-size:11px" data-del-sleep="${s.id}">删</span></div>`;
+  var sleepHtml='';
+  daySleep.forEach(s=>{
+    sleepHtml+='<div style="font-size:13px;margin-top:4px">'+s.hours+'h · '+s.quality+' · '+fmtTime(s.ts)+' <span style="color:var(--muted);cursor:pointer;font-size:11px" data-del-sleep="'+s.id+'">删</span></div>';
   });
 
-  // Sleep history chart
-  let sleepHistHtml='';
+  // Sleep history chart (always show)
   const recentSleep=getRecentSleep();
-  if(recentSleep.length>1){
+  var sleepChartHtml='';
+  if(recentSleep.length>0){
     const maxH=Math.max(...recentSleep.map(s=>s.hours),1);
-    sleepHistHtml=`
-      <div class="hist-toggle" id="sleepHistToggle">${sleepHistOpen?'收起':'展开'}近期睡眠统计 ▾</div>
-      <div class="chart-wrap" id="sleepChart" style="${sleepHistOpen?'':'display:none'}">
-        ${recentSleep.map(s=>`
-          <div class="chart-row">
-            <span class="chart-date">${s.label}</span>
-            <span class="chart-bar-wrap"><span class="chart-bar sleep-bar" style="width:${(s.hours/maxH*100)}%"></span></span>
-            <span class="chart-val">${s.hours}h</span>
-          </div>
-        `).join('')}
-      </div>`;
+    sleepChartHtml='<div class="chart-wrap">'+
+      recentSleep.map(s=>{
+        const h=Math.max(2,Math.round(s.hours/maxH*100));
+        return '<div class="chart-row">'+
+          '<span class="chart-date">'+s.label+'</span>'+
+          '<span class="chart-bar-wrap"><span class="chart-bar sleep-bar" style="width:'+h+'%"></span></span>'+
+          '<span class="chart-val">'+s.hours+'h</span>'+
+        '</div>';
+      }).join('')+
+    '</div>';
   }
 
-  // Water history chart
-  let waterHistHtml='';
+  // Water history chart (always show)
   const recentWater=getRecentWater();
-  if(recentWater.length>1){
+  var waterChartHtml='';
+  if(recentWater.length>0){
     const maxW=Math.max(...recentWater.map(w=>w.ml),1);
-    waterHistHtml=`
-      <div class="hist-toggle" id="waterHistToggle">${waterHistOpen?'收起':'展开'}近期喝水统计 ▾</div>
-      <div class="chart-wrap" id="waterChart" style="${waterHistOpen?'':'display:none'}">
-        ${recentWater.map(w=>`
-          <div class="chart-row">
-            <span class="chart-date">${w.label}</span>
-            <span class="chart-bar-wrap"><span class="chart-bar water-bar" style="width:${(w.ml/maxW*100)}%"></span></span>
-            <span class="chart-val">${w.ml}ml</span>
-          </div>
-        `).join('')}
-      </div>`;
+    waterChartHtml='<div class="chart-wrap">'+
+      recentWater.map(w=>{
+        const p=Math.max(2,Math.round(w.ml/maxW*100));
+        return '<div class="chart-row">'+
+          '<span class="chart-date">'+w.label+'</span>'+
+          '<span class="chart-bar-wrap"><span class="chart-bar water-bar" style="width:'+p+'%"></span></span>'+
+          '<span class="chart-val">'+w.ml+'ml</span>'+
+        '</div>';
+      }).join('')+
+    '</div>';
   }
 
-  let mealHtml='';
+  var mealHtml='';
   const mealGrouped={};
-  todayMeals.forEach(m=>{if(!mealGrouped[m.meal])mealGrouped[m.meal]=[];mealGrouped[m.meal].push(m)});
+  dayMeals.forEach(m=>{if(!mealGrouped[m.meal])mealGrouped[m.meal]=[];mealGrouped[m.meal].push(m)});
   for(const [meal,items]of Object.entries(mealGrouped)){
     items.forEach(m=>{
-      mealHtml+=`<div class="meal-item">
-        <span class="meal-tag ${m.meal}">${mealLabels[m.meal]}</span>
-        <span style="font-size:14px">${escHtml(m.text)}</span>
-        ${m.imgId?` <img src="" data-img="${m.imgId}" onclick="loadImg(this,'${m.imgId}')" style="width:36px;height:36px;object-fit:cover;border-radius:8px;vertical-align:middle;cursor:pointer" alt="">`:''}
-        <span style="float:right;font-size:11px;color:var(--muted)">${fmtTime(m.ts)}</span>
-      </div>`;
+      mealHtml+='<div class="meal-item">'+
+        '<span class="meal-tag '+m.meal+'">'+mealLabels[m.meal]+'</span>'+
+        '<span style="font-size:14px">'+escHtml(m.text)+'</span>'+
+        (m.imgId?' <img src="" data-img="'+m.imgId+'" onclick="loadImg(this,\''+m.imgId+'\')" style="width:36px;height:36px;object-fit:cover;border-radius:8px;vertical-align:middle;cursor:pointer" alt="">':'')+
+        '<span style="float:right;font-size:11px;color:var(--muted)">'+fmtTime(m.ts)+' <span class="del-btn" data-del-meal="'+m.id+'">删</span></span>'+
+      '</div>';
     });
   }
 
-  return `
-    <div class="card body-card">
-      <div style="font-weight:600;margin-bottom:8px">😴 睡眠</div>
-      <div class="big-num">${todaySleep.length?todaySleep[todaySleep.length-1].hours+'h':'--'}</div>
-      ${sleepHtml||'<div style="font-size:13px;color:var(--muted)">今天还没记录</div>'}
-      ${sleepHistHtml}
-    </div>
-    <div class="card body-card">
-      <div style="font-weight:600;margin-bottom:8px">💧 喝水</div>
-      <div class="big-num">${todayWater}<span class="unit">ml</span></div>
-      <div style="font-size:12px;color:var(--muted);margin:4px 0">目标 2000ml · ${waterPct}%</div>
-      <div style="margin-top:8px">
-        <button class="water-btn" id="waterAdd">+</button>
-      </div>
-      ${waterHistHtml}
-    </div>
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:8px">🍽️ 饮食</div>
-      ${mealHtml||'<div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">今天还没记录</div>'}
-    </div>
-  `;
+  return ''+
+    '<div class="card body-card">'+
+      '<div style="font-weight:600;margin-bottom:8px">😴 睡眠 · 近7天</div>'+
+      '<div class="big-num">'+(daySleep.length?daySleep[daySleep.length-1].hours+'h':'--')+'</div>'+
+      (sleepHtml||'<div style="font-size:13px;color:var(--muted)">今天还没记录</div>')+
+      sleepChartHtml+
+    '</div>'+
+    '<div class="card body-card">'+
+      '<div style="font-weight:600;margin-bottom:8px">💧 喝水 · 近7天</div>'+
+      '<div class="big-num">'+dayWater+'<span class="unit">ml</span></div>'+
+      '<div style="font-size:12px;color:var(--muted);margin:4px 0">目标 2000ml · '+waterPct+'%</div>'+
+      '<div style="margin-top:8px"><button class="water-btn" id="waterAdd">+</button></div>'+
+      waterChartHtml+
+    '</div>'+
+    '<div class="card">'+
+      '<div style="font-weight:600;margin-bottom:8px">🍽️ 饮食</div>'+
+      (mealHtml||'<div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">'+fmtDate(viewDate?viewDate.getTime():Date.now())+'还没有记录</div>')+
+    '</div>';
 }
 
 function getRecentSleep(){
   const days=[];
   for(let i=6;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i);
-    const ds=d.toDateString();
-    const recs=data.body.sleep.filter(s=>new Date(s.ts).toDateString()===ds);
-    if(recs.length){
-      const latest=recs[recs.length-1];
-      days.push({label:fmtFullDate(d.getTime()),hours:latest.hours});
-    }
+    const ds=dateKey(d);
+    const recs=data.body.sleep.filter(s=>dateKey(new Date(s.ts))===ds);
+    if(recs.length)days.push({label:fmtFullDate(d.getTime()),hours:recs[recs.length-1].hours});
   }
   return days;
 }
@@ -603,9 +603,8 @@ function getRecentWater(){
   const days=[];
   for(let i=6;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i);
-    const ds=d.toDateString();
-    const ml=data.body.water[ds]||0;
-    days.push({label:fmtFullDate(d.getTime()),ml});
+    const ds=dateKey(d);
+    days.push({label:fmtFullDate(d.getTime()),ml:data.body.water[ds]||0});
   }
   return days;
 }
@@ -616,91 +615,87 @@ function renderMe(){
   const now=new Date();const m=now.getMonth(),y=now.getFullYear();
   const monthExp=data.finance.filter(r=>{const d=new Date(r.ts);return d.getMonth()===m&&d.getFullYear()===y&&r.type==='expense'}).reduce((s,r)=>s+r.amount,0);
   const cfg=syncCfg();
-  const syncConfigured=!!(cfg.token&&cfg.owner&&cfg.repo);
-  return `
-    <div class="stat-row">
-      <div class="card stat-card"><div class="num">${totalRecs}</div><div class="lbl">总记录</div></div>
-      <div class="card stat-card"><div class="num">${data.finance.length}</div><div class="lbl">记账笔数</div></div>
-      <div class="card stat-card"><div class="num">${data.thoughts.length}</div><div class="lbl">想法</div></div>
-    </div>
-    <div class="card stat-card"><div class="num" style="color:var(--accent)">¥${monthExp.toFixed(2)}</div><div class="lbl">本月支出</div></div>
-    <div class="card" style="margin-top:10px">
-      <div style="font-weight:600;margin-bottom:10px">☁️ 多端同步</div>
-      ${syncConfigured?`
-        <div style="font-size:13px;color:var(--accent2);margin-bottom:8px">已配置 · 数据自动同步</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">仓库: ${escHtml(cfg.owner)}/${escHtml(cfg.repo)}</div>
-        <button class="btn btn-sm btn-accent" id="syncPushBtn" style="width:100%;margin-bottom:4px">🔄 立即同步</button>
-        <button class="btn btn-sm btn-outline" id="syncPullBtn" style="width:100%;margin-bottom:4px">📥 拉取最新数据</button>
-        <button class="btn btn-sm btn-outline" id="syncResetBtn" style="width:100%;color:var(--danger);border-color:var(--danger)">解除同步配置</button>
-      `:`
-        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">配置后可在不同设备间同步记录</div>
-        <div style="margin-bottom:6px"><input class="input" id="syncOwner" placeholder="GitHub 用户名" style="font-size:14px"></div>
-        <div style="margin-bottom:6px"><input class="input" id="syncRepo" placeholder="私有仓库名（如 tracker-sync）" style="font-size:14px"></div>
-        <div style="margin-bottom:8px"><input class="input" id="syncToken" type="password" placeholder="GitHub Token" style="font-size:14px"></div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Token 仅存在本设备，不会上传。<br>数据存储在私有仓库中，别人看不到。</div>
-        <button class="btn btn-sm btn-accent" id="syncSaveCfg" style="width:100%">保存并同步</button>
-      `}
-    </div>
-    <div style="margin-top:16px">
-      <div class="menu-item" data-action="export-csv"><span>📊 导出 Excel (CSV)</span><span class="arrow">›</span></div>
-      <div class="menu-item" data-action="export-json"><span>📤 导出备份 (JSON)</span><span class="arrow">›</span></div>
-      <div class="menu-item" data-action="import"><span>📥 导入备份</span><span class="arrow">›</span></div>
-      <div class="menu-item" data-action="clear"><span>🗑️ 清除所有数据</span><span class="arrow">›</span></div>
-    </div>
-    <div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px">数据仅储存在此设备<br>不会上传到任何服务器</div>
-  `;
+  const ok=!!(cfg.token&&cfg.owner&&cfg.repo);
+  return ''+
+    '<div class="stat-row">'+
+      '<div class="card stat-card"><div class="num">'+totalRecs+'</div><div class="lbl">总记录</div></div>'+
+      '<div class="card stat-card"><div class="num">'+data.finance.length+'</div><div class="lbl">记账笔数</div></div>'+
+      '<div class="card stat-card"><div class="num">'+data.thoughts.length+'</div><div class="lbl">想法</div></div>'+
+    '</div>'+
+    '<div class="card stat-card"><div class="num" style="color:var(--accent)">¥'+monthExp.toFixed(2)+'</div><div class="lbl">本月支出</div></div>'+
+    '<div class="card" style="margin-top:10px">'+
+      '<div style="font-weight:600;margin-bottom:10px">☁️ 多端同步</div>'+
+      (ok?
+        '<div class="sync-status ok">已配置 · 自动同步中</div>'+
+        '<div style="font-size:13px;color:var(--muted);margin:4px 0 8px">'+escHtml(cfg.owner)+'/'+escHtml(cfg.repo)+'</div>'+
+        '<button class="btn btn-sm btn-accent" id="syncNowBtn" style="width:100%;margin-bottom:4px">🔄 立即同步</button>'+
+        '<button class="btn btn-sm btn-outline" id="syncResetBtn" style="width:100%;color:var(--danger);border-color:var(--danger)">解除同步配置</button>'
+      :
+        '<div style="font-size:13px;color:var(--muted);margin-bottom:8px">配置后可在不同设备间同步记录</div>'+
+        '<div style="margin-bottom:6px"><input class="input" id="syncOwner" placeholder="GitHub 用户名" style="font-size:14px" value="'+escHtml(cfg.owner||'')+'"></div>'+
+        '<div style="margin-bottom:6px"><input class="input" id="syncRepo" placeholder="私有仓库名（如 tracker-sync）" style="font-size:14px" value="'+escHtml(cfg.repo||'')+'"></div>'+
+        '<div style="margin-bottom:8px"><input class="input" id="syncToken" type="password" placeholder="GitHub Token" style="font-size:14px"></div>'+
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Token 仅存在本设备，不会上传</div>'+
+        '<button class="btn btn-sm btn-accent" id="syncSaveBtn" style="width:100%">保存并同步</button>'
+      )+
+    '</div>'+
+    '<div style="margin-top:16px">'+
+      '<div class="menu-item" data-action="export-csv"><span>📊 导出 Excel (CSV)</span><span class="arrow">›</span></div>'+
+      '<div class="menu-item" data-action="export-json"><span>📤 导出备份 (JSON)</span><span class="arrow">›</span></div>'+
+      '<div class="menu-item" data-action="import"><span>📥 导入备份</span><span class="arrow">›</span></div>'+
+      '<div class="menu-item" data-action="clear"><span>🗑️ 清除所有数据</span><span class="arrow">›</span></div>'+
+    '</div>'+
+    '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px">数据仅储存在此设备<br>不会上传到任何服务器</div>';
 }
 
 // ---- Input Row ----
 function renderInputRow(){
   switch(activeTab){
-    case 'finance':return `
-      <button class="btn btn-sm btn-outline" id="finTypeBtn">${financeCat==='expense'?'支出':'收入'}</button>
-      <input class="input" id="finAmount" type="number" placeholder="金额" style="width:80px;text-align:center" inputmode="decimal">
-      <input class="input" id="finNote" placeholder="备注（可选）" style="flex:1">
-    `;
-    case 'thoughts':return `
-      <textarea class="input" id="thoughtInput" placeholder="记录想法...&#10;支持换行，可以同时发文字和图片" style="flex:1;height:36px" rows="1"></textarea>
-      ${pendingThoughtFile?`<span class="img-pending"><img src="${URL.createObjectURL(pendingThoughtFile)}" alt=""><span class="remove" id="thoughtImgRemove">×</span></span>`:''}
-      <button class="btn btn-sm btn-outline" id="thoughtImgBtn">📷</button>
-      <input type="file" id="thoughtImgFile" accept="image/*" style="display:none">
-      <button class="btn btn-sm btn-accent" id="thoughtSend">发送</button>
-    `;
+    case 'finance':return ''+
+      '<button class="btn btn-sm btn-outline" id="finTypeBtn">'+(financeCat==='expense'?'支出':'收入')+'</button>'+
+      '<input class="input" id="finAmount" type="number" placeholder="金额" style="width:80px;text-align:center" inputmode="decimal">'+
+      '<input class="input" id="finNote" placeholder="备注（可选）" style="flex:1">';
+    case 'thoughts':return ''+
+      '<textarea class="input" id="thoughtInput" placeholder="记录想法...&#10;Shift+Enter 换行，Enter 发送" style="flex:1;height:36px" rows="1"></textarea>'+
+      (pendingThoughtFile?'<span class="img-pending"><img src="'+URL.createObjectURL(pendingThoughtFile)+'" alt=""><span class="remove" id="thoughtImgRemove">×</span></span>':'')+
+      '<button class="btn btn-sm btn-outline" id="thoughtImgBtn">📷</button>'+
+      '<input type="file" id="thoughtImgFile" accept="image/*" style="display:none">'+
+      '<button class="btn btn-sm btn-accent" id="thoughtSend">发送</button>';
     case 'body':return renderBodyInput();
     default:return '';
   }
 }
 
 function renderBodyInput(){
-  if(bodySubTab==='sleep')return `
-    <input class="input" id="sleepHr" type="number" placeholder="小时" style="width:70px;text-align:center" inputmode="decimal" step="0.5" min="0" max="24">
-    <select id="sleepQuality" style="padding:8px 12px;border-radius:16px;border:1.5px solid var(--muted);background:transparent;font-size:13px;color:var(--text)">
-      <option value="好">好</option><option value="一般">一般</option><option value="差">差</option>
-    </select>
-    <button class="btn btn-sm btn-accent" id="sleepSave">保存</button>
-    <div style="display:flex;gap:6px;margin-left:auto">
-      <button class="btn btn-sm btn-outline" data-bodysub="water" style="font-size:11px">💧</button>
-      <button class="btn btn-sm btn-outline" data-bodysub="meal" style="font-size:11px">🍽️</button>
-    </div>`;
-  if(bodySubTab==='water')return `
-    <span style="font-size:13px;color:var(--muted);padding:0 8px">点击下方 + 号记录 200ml</span>
-    <div style="display:flex;gap:6px;margin-left:auto">
-      <button class="btn btn-sm btn-outline" data-bodysub="sleep" style="font-size:11px">😴</button>
-      <button class="btn btn-sm btn-outline" data-bodysub="meal" style="font-size:11px">🍽️</button>
-    </div>`;
-  if(bodySubTab==='meal')return `
-    <select id="mealType" style="padding:8px 12px;border-radius:16px;border:1.5px solid var(--muted);background:transparent;font-size:13px;color:var(--text)">
-      ${meals.map(m=>`<option value="${m}">${mealLabels[m]}</option>`).join('')}
-    </select>
-    <textarea class="input" id="mealText" placeholder="吃了什么..." style="flex:1;height:36px" rows="1"></textarea>
-    ${pendingMealFile?`<span class="img-pending"><img src="${URL.createObjectURL(pendingMealFile)}" alt=""><span class="remove" id="mealImgRemove">×</span></span>`:''}
-    <button class="btn btn-sm btn-outline" id="mealImgBtn">📷</button>
-    <input type="file" id="mealImgFile" accept="image/*" style="display:none">
-    <button class="btn btn-sm btn-accent" id="mealSend">保存</button>
-    <div style="display:flex;gap:6px;margin-left:auto">
-      <button class="btn btn-sm btn-outline" data-bodysub="sleep" style="font-size:11px">😴</button>
-      <button class="btn btn-sm btn-outline" data-bodysub="water" style="font-size:11px">💧</button>
-    </div>`;
+  if(bodySubTab==='sleep')return ''+
+    '<input class="input" id="sleepHr" type="number" placeholder="小时" style="width:70px;text-align:center" inputmode="decimal" step="0.5" min="0" max="24">'+
+    '<select id="sleepQuality" style="padding:8px 12px;border-radius:16px;border:1.5px solid var(--muted);background:transparent;font-size:13px;color:var(--text)">'+
+      '<option value="好">好</option><option value="一般">一般</option><option value="差">差</option>'+
+    '</select>'+
+    '<button class="btn btn-sm btn-accent" id="sleepSave">保存</button>'+
+    '<div style="display:flex;gap:6px;margin-left:auto">'+
+      '<button class="btn btn-sm btn-outline" data-bodysub="water" style="font-size:11px">💧</button>'+
+      '<button class="btn btn-sm btn-outline" data-bodysub="meal" style="font-size:11px">🍽️</button>'+
+    '</div>';
+  if(bodySubTab==='water')return ''+
+    '<span style="font-size:13px;color:var(--muted);padding:0 8px">点击下方 + 号记录 200ml</span>'+
+    '<div style="display:flex;gap:6px;margin-left:auto">'+
+      '<button class="btn btn-sm btn-outline" data-bodysub="sleep" style="font-size:11px">😴</button>'+
+      '<button class="btn btn-sm btn-outline" data-bodysub="meal" style="font-size:11px">🍽️</button>'+
+    '</div>';
+  if(bodySubTab==='meal')return ''+
+    '<select id="mealType" style="padding:8px 12px;border-radius:16px;border:1.5px solid var(--muted);background:transparent;font-size:13px;color:var(--text)">'+
+      meals.map(m=>'<option value="'+m+'">'+mealLabels[m]+'</option>').join('')+
+    '</select>'+
+    '<textarea class="input" id="mealText" placeholder="吃了什么..." style="flex:1;height:36px" rows="1"></textarea>'+
+    (pendingMealFile?'<span class="img-pending"><img src="'+URL.createObjectURL(pendingMealFile)+'" alt=""><span class="remove" id="mealImgRemove">×</span></span>':'')+
+    '<button class="btn btn-sm btn-outline" id="mealImgBtn">📷</button>'+
+    '<input type="file" id="mealImgFile" accept="image/*" style="display:none">'+
+    '<button class="btn btn-sm btn-accent" id="mealSend">保存</button>'+
+    '<div style="display:flex;gap:6px;margin-left:auto">'+
+      '<button class="btn btn-sm btn-outline" data-bodysub="sleep" style="font-size:11px">😴</button>'+
+      '<button class="btn btn-sm btn-outline" data-bodysub="water" style="font-size:11px">💧</button>'+
+    '</div>';
 }
 
 // ============ BINDINGS ============
@@ -708,8 +703,7 @@ function bindTabs(){
   document.querySelectorAll('.tab').forEach(t=>{
     t.onclick=()=>{
       activeTab=t.dataset.tab;
-      if(activeTab==='body')bodySubTab='sleep';
-      sleepHistOpen=false;waterHistOpen=false;
+      if(activeTab==='body'){bodySubTab='sleep';viewDate=null;}
       pendingThoughtFile=null;pendingMealFile=null;
       render();
     };
@@ -717,15 +711,29 @@ function bindTabs(){
   document.querySelectorAll('[data-bodysub]').forEach(b=>{
     b.onclick=()=>{bodySubTab=b.dataset.bodysub;render();};
   });
+
+  // Date navigation for body tab
+  const datePrev=document.getElementById('datePrev');
+  const dateNext=document.getElementById('dateNext');
+  const dateToday=document.getElementById('dateToday');
+  if(datePrev)datePrev.onclick=()=>{shiftViewDate(-1)};
+  if(dateNext)dateNext.onclick=()=>{shiftViewDate(1)};
+  if(dateToday)dateToday.onclick=()=>{viewDate=null;render()};
+}
+
+function shiftViewDate(delta){
+  if(!viewDate)viewDate=new Date();
+  viewDate.setDate(viewDate.getDate()+delta);
+  // Don't go past today
+  const t=new Date();
+  if(dateKey(viewDate)===today())viewDate=null;
+  render();
 }
 
 function bindInput(){
   // Finance
   const finTypeBtn=document.getElementById('finTypeBtn');
-  if(finTypeBtn)finTypeBtn.onclick=()=>{
-    financeCat=financeCat==='expense'?'income':'expense';
-    render();
-  };
+  if(finTypeBtn)finTypeBtn.onclick=()=>{financeCat=financeCat==='expense'?'income':'expense';render()};
   const finAmount=document.getElementById('finAmount');
   const finNote=document.getElementById('finNote');
   if(finAmount&&finNote){
@@ -736,12 +744,16 @@ function bindInput(){
       data.finance.push({id:uid(),type:financeCat,amount:amt,cat:financeCatType,note:note||financeCatType,ts:Date.now()});
       save();render();
     };
-    finAmount.onkeydown=e=>{if(e.key==='Enter')addFinance();};
-    finNote.onkeydown=e=>{if(e.key==='Enter')addFinance();};
+    finAmount.onkeydown=e=>{if(e.key==='Enter')addFinance()};
+    finNote.onkeydown=e=>{if(e.key==='Enter')addFinance()};
   }
-  // Cat chips
   document.querySelectorAll('.cat-chip').forEach(c=>{
-    c.onclick=()=>{financeCatType=c.dataset.cat;render();};
+    c.onclick=()=>{financeCatType=c.dataset.cat;render()};
+  });
+
+  // Delete finance
+  document.querySelectorAll('[data-del-fin]').forEach(b=>{
+    b.onclick=()=>{data.finance=data.finance.filter(r=>r.id!==b.dataset.delFin);save();render()};
   });
 
   // Thoughts
@@ -759,7 +771,7 @@ function bindInput(){
   }
   if(thoughtInput){
     thoughtInput.onkeydown=e=>{
-      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitThought();}
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitThought()}
     };
   }
   if(thoughtSend)thoughtSend.onclick=submitThought;
@@ -785,6 +797,11 @@ function bindInput(){
     };
   }
 
+  // Delete thought
+  document.querySelectorAll('[data-del-thought]').forEach(b=>{
+    b.onclick=()=>{data.thoughts=data.thoughts.filter(t=>t.id!==b.dataset.delThought);save();render()};
+  });
+
   // Sleep
   const sleepSave=document.getElementById('sleepSave');
   if(sleepSave){
@@ -796,27 +813,18 @@ function bindInput(){
       save();render();
     };
   }
-
-  // Sleep history toggle
-  const sleepHistToggle=document.getElementById('sleepHistToggle');
-  if(sleepHistToggle){
-    sleepHistToggle.onclick=()=>{sleepHistOpen=!sleepHistOpen;render();};
-  }
+  document.querySelectorAll('[data-del-sleep]').forEach(b=>{
+    b.onclick=()=>{data.body.sleep=data.body.sleep.filter(s=>s.id!==b.dataset.delSleep);save();render()};
+  });
 
   // Water
   const waterAdd=document.getElementById('waterAdd');
   if(waterAdd){
     waterAdd.onclick=()=>{
-      const today=new Date().toDateString();
-      data.body.water[today]=(data.body.water[today]||0)+200;
+      const dk=today();
+      data.body.water[dk]=(data.body.water[dk]||0)+200;
       save();render();
     };
-  }
-
-  // Water history toggle
-  const waterHistToggle=document.getElementById('waterHistToggle');
-  if(waterHistToggle){
-    waterHistToggle.onclick=()=>{waterHistOpen=!waterHistOpen;render();};
   }
 
   // Meal
@@ -834,7 +842,7 @@ function bindInput(){
   }
   if(mealText){
     mealText.onkeydown=e=>{
-      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitMeal();}
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitMeal()}
     };
   }
   if(mealSend)mealSend.onclick=submitMeal;
@@ -860,12 +868,9 @@ function bindInput(){
     };
   }
 
-  // Delete buttons
-  document.querySelectorAll('[data-del-thought]').forEach(b=>{
-    b.onclick=()=>{data.thoughts=data.thoughts.filter(t=>t.id!==b.dataset.delThought);save();render();};
-  });
-  document.querySelectorAll('[data-del-sleep]').forEach(b=>{
-    b.onclick=()=>{data.body.sleep=data.body.sleep.filter(s=>s.id!==b.dataset.delSleep);save();render();};
+  // Delete meal
+  document.querySelectorAll('[data-del-meal]').forEach(b=>{
+    b.onclick=()=>{data.body.meals=data.body.meals.filter(m=>m.id!==b.dataset.delMeal);save();render()};
   });
 }
 
@@ -880,10 +885,10 @@ function bindMeActions(){
     };
   });
 
-  // Sync
-  const syncSaveCfg=document.getElementById('syncSaveCfg');
-  if(syncSaveCfg){
-    syncSaveCfg.onclick=async()=>{
+  // Sync: save config
+  const syncSaveBtn=document.getElementById('syncSaveBtn');
+  if(syncSaveBtn){
+    syncSaveBtn.onclick=async()=>{
       const owner=document.getElementById('syncOwner').value.trim();
       const repo=document.getElementById('syncRepo').value.trim();
       const token=document.getElementById('syncToken').value.trim();
@@ -893,28 +898,27 @@ function bindMeActions(){
         await syncPush();
         toast('配置成功，已同步');
         render();
-      }catch(e){toast('配置失败: '+e.message)}
+      }catch(e){toast('同步失败: '+e.message)}
     };
   }
-  const syncPushBtn=document.getElementById('syncPushBtn');
-  if(syncPushBtn){
-    syncPushBtn.onclick=async()=>{
-      try{await syncPush();toast('同步成功');}catch(e){toast('同步失败: '+e.message)}
-    };
-  }
-  const syncPullBtn=document.getElementById('syncPullBtn');
-  if(syncPullBtn){
-    syncPullBtn.onclick=async()=>{
+
+  // Sync now
+  const syncNowBtn=document.getElementById('syncNowBtn');
+  if(syncNowBtn){
+    syncNowBtn.onclick=async()=>{
       try{
-        const changed=await syncPull();
-        if(changed){render();toast('已拉取最新数据')}else{toast('数据已是最新')}
-      }catch(e){toast('拉取失败: '+e.message)}
+        await syncPull();
+        await syncPush();
+        toast('同步成功');
+      }catch(e){toast('同步失败: '+e.message)}
     };
   }
+
+  // Reset sync
   const syncResetBtn=document.getElementById('syncResetBtn');
   if(syncResetBtn){
     syncResetBtn.onclick=()=>{
-      showDialog('解除同步', '不会删除云端数据，仅移除本设备的同步配置。',()=>{
+      showDialog('解除同步','不会删除云端数据，仅移除本设备的同步配置。',()=>{
         localStorage.removeItem(SYNC_KEY);
         render();toast('同步配置已移除');
       });
@@ -949,7 +953,7 @@ async function loadImg(el,imgId){
   if(blob){
     const url=URL.createObjectURL(blob);
     el.src=url;
-    el.onclick=()=>{document.getElementById('imgFullImg').src=url;document.getElementById('imgFull').classList.add('show');};
+    el.onclick=()=>{document.getElementById('imgFullImg').src=url;document.getElementById('imgFull').classList.add('show')};
   }
 }
 
@@ -1012,7 +1016,7 @@ function importData(){
 
 function showDialog(title,msg,onConfirm){
   const d=document.getElementById('dialog');
-  d.innerHTML=`<h3>${title}</h3><p>${msg}</p><div class="btns"><button class="btn btn-outline" id="dlgCancel">取消</button><button class="btn btn-accent" id="dlgConfirm">确认</button></div>`;
+  d.innerHTML='<h3>'+title+'</h3><p>'+msg+'</p><div class="btns"><button class="btn btn-outline" id="dlgCancel">取消</button><button class="btn btn-accent" id="dlgConfirm">确认</button></div>';
   document.getElementById('overlay').classList.add('show');
   document.getElementById('dlgCancel').onclick=()=>document.getElementById('overlay').classList.remove('show');
   document.getElementById('dlgConfirm').onclick=()=>{
@@ -1030,7 +1034,6 @@ function showClearDialog(){
 
 function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-// After render, load all images
 const origRender=render;
 render=function(){
   origRender();
@@ -1044,10 +1047,9 @@ async function loadAllImgs(){
 
 // Init
 (async function init(){
-  // Try to pull remote data on load
   const cfg=syncCfg();
   if(cfg.token&&cfg.owner&&cfg.repo){
-    try{await syncPull();render();}catch(e){/* offline or no data yet, use local */}
+    try{await syncPull()}catch(e){/* offline */}
   }
   render();
 })();
