@@ -74,7 +74,6 @@ body{
   padding-bottom:var(--safe-b);
 }
 .input-row{display:flex;gap:8px;padding:10px 16px;align-items:center}
-.input-row .input{flex:1}
 
 /* Tab bar */
 .tab-bar{
@@ -158,6 +157,24 @@ body{
 .img-full{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:150;display:none;justify-content:center;align-items:center;cursor:pointer}
 .img-full.show{display:flex}
 .img-full img{max-width:95%;max-height:90%;border-radius:8px}
+
+/* Textarea */
+.input-row textarea.input{resize:none;min-height:36px;max-height:80px;font-family:inherit;line-height:1.4}
+.img-pending{display:inline-flex;align-items:center;gap:4px;position:relative;margin-left:4px;flex-shrink:0}
+.img-pending img{width:32px;height:32px;object-fit:cover;border-radius:8px}
+.img-pending .remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;line-height:18px;text-align:center;cursor:pointer}
+
+/* History charts */
+.hist-toggle{font-size:12px;color:var(--accent);cursor:pointer;margin-top:10px;user-select:none}
+.hist-toggle:active{opacity:.7}
+.chart-wrap{padding-top:8px}
+.chart-row{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:11px}
+.chart-date{width:38px;text-align:right;color:var(--muted);flex-shrink:0}
+.chart-bar-wrap{flex:1;height:14px;background:rgba(74,55,40,.05);border-radius:7px;overflow:hidden}
+.chart-bar{height:100%;border-radius:7px;min-width:2px;transition:width .4s}
+.chart-bar.sleep-bar{background:linear-gradient(90deg,#C27A5A,#D4956E)}
+.chart-bar.water-bar{background:linear-gradient(90deg,#7BA4B5,#8FB8C8)}
+.chart-val{width:42px;font-size:11px;color:var(--muted);flex-shrink:0}
 </style>
 </head>
 <body>
@@ -230,6 +247,10 @@ let activeTab='finance';
 let financeCat='expense';
 let financeCatType='餐饮';
 let bodySubTab='sleep';
+let sleepHistOpen=false;
+let waterHistOpen=false;
+let pendingThoughtFile=null;
+let pendingMealFile=null;
 
 const cats=['餐饮','交通','购物','娱乐','日用','其他'];
 const meals=['breakfast','lunch','dinner','snack'];
@@ -256,15 +277,17 @@ function fmtDate(ts){
 
 function fmtTime(ts){const d=new Date(ts);return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 
+function fmtFullDate(ts){const d=new Date(ts);return `${d.getMonth()+1}/${d.getDate()}`}
+
 // ============ RENDER ============
 function render(){
   const app=document.getElementById('app');
-  app.innerHTML=`
-    ${renderPage('finance','💰','记账',renderFinance())}
-    ${renderPage('thoughts','💭','想法',renderThoughts())}
-    ${renderPage('body','🌿','身体',renderBody())}
-    ${renderPage('me','👤','我',renderMe())}
-    <div class="bottom-bar">
+  app.innerHTML=
+    renderPage('finance','💰','记账',renderFinance())+
+    renderPage('thoughts','💭','想法',renderThoughts())+
+    renderPage('body','🌿','身体',renderBody())+
+    renderPage('me','👤','我',renderMe())+
+    `<div class="bottom-bar">
       <div class="input-row">${renderInputRow()}</div>
       <div class="tab-bar">
         ${['finance','thoughts','body','me'].map(t=>`
@@ -274,8 +297,7 @@ function render(){
           </div>
         `).join('')}
       </div>
-    </div>
-  `;
+    </div>`;
   bindTabs();
   bindInput();
   bindMeActions();
@@ -358,6 +380,42 @@ function renderBody(){
     sleepHtml+=`<div style="font-size:13px;margin-top:4px">${s.hours}h · ${s.quality} · ${fmtTime(s.ts)} <span style="color:var(--muted);cursor:pointer;font-size:11px" data-del-sleep="${s.id}">删</span></div>`;
   });
 
+  // Sleep history chart
+  let sleepHistHtml='';
+  const recentSleep=getRecentSleep();
+  if(recentSleep.length>1){
+    const maxH=Math.max(...recentSleep.map(s=>s.hours),1);
+    sleepHistHtml=`
+      <div class="hist-toggle" id="sleepHistToggle">${sleepHistOpen?'收起':'展开'}近期睡眠统计 ▾</div>
+      <div class="chart-wrap" id="sleepChart" style="${sleepHistOpen?'':'display:none'}">
+        ${recentSleep.map(s=>`
+          <div class="chart-row">
+            <span class="chart-date">${s.label}</span>
+            <span class="chart-bar-wrap"><span class="chart-bar sleep-bar" style="width:${(s.hours/maxH*100)}%"></span></span>
+            <span class="chart-val">${s.hours}h</span>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  // Water history chart
+  let waterHistHtml='';
+  const recentWater=getRecentWater();
+  if(recentWater.length>1){
+    const maxW=Math.max(...recentWater.map(w=>w.ml),1);
+    waterHistHtml=`
+      <div class="hist-toggle" id="waterHistToggle">${waterHistOpen?'收起':'展开'}近期喝水统计 ▾</div>
+      <div class="chart-wrap" id="waterChart" style="${waterHistOpen?'':'display:none'}">
+        ${recentWater.map(w=>`
+          <div class="chart-row">
+            <span class="chart-date">${w.label}</span>
+            <span class="chart-bar-wrap"><span class="chart-bar water-bar" style="width:${(w.ml/maxW*100)}%"></span></span>
+            <span class="chart-val">${w.ml}ml</span>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
   let mealHtml='';
   const mealGrouped={};
   todayMeals.forEach(m=>{if(!mealGrouped[m.meal])mealGrouped[m.meal]=[];mealGrouped[m.meal].push(m)});
@@ -377,6 +435,7 @@ function renderBody(){
       <div style="font-weight:600;margin-bottom:8px">😴 睡眠</div>
       <div class="big-num">${todaySleep.length?todaySleep[todaySleep.length-1].hours+'h':'--'}</div>
       ${sleepHtml||'<div style="font-size:13px;color:var(--muted)">今天还没记录</div>'}
+      ${sleepHistHtml}
     </div>
     <div class="card body-card">
       <div style="font-weight:600;margin-bottom:8px">💧 喝水</div>
@@ -385,12 +444,38 @@ function renderBody(){
       <div style="margin-top:8px">
         <button class="water-btn" id="waterAdd">+</button>
       </div>
+      ${waterHistHtml}
     </div>
     <div class="card">
       <div style="font-weight:600;margin-bottom:8px">🍽️ 饮食</div>
       ${mealHtml||'<div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">今天还没记录</div>'}
     </div>
   `;
+}
+
+function getRecentSleep(){
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toDateString();
+    const recs=data.body.sleep.filter(s=>new Date(s.ts).toDateString()===ds);
+    if(recs.length){
+      const latest=recs[recs.length-1];
+      days.push({label:fmtFullDate(d.getTime()),hours:latest.hours});
+    }
+  }
+  return days;
+}
+
+function getRecentWater(){
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toDateString();
+    const ml=data.body.water[ds]||0;
+    days.push({label:fmtFullDate(d.getTime()),ml});
+  }
+  return days;
 }
 
 // ---- Me ----
@@ -424,9 +509,11 @@ function renderInputRow(){
       <input class="input" id="finNote" placeholder="备注（可选）" style="flex:1">
     `;
     case 'thoughts':return `
-      <input class="input" id="thoughtInput" placeholder="记录想法..." style="flex:1">
+      <textarea class="input" id="thoughtInput" placeholder="记录想法...&#10;支持换行，可以同时发文字和图片" style="flex:1;height:36px" rows="1"></textarea>
+      ${pendingThoughtFile?`<span class="img-pending"><img src="${URL.createObjectURL(pendingThoughtFile)}" alt=""><span class="remove" id="thoughtImgRemove">×</span></span>`:''}
       <button class="btn btn-sm btn-outline" id="thoughtImgBtn">📷</button>
       <input type="file" id="thoughtImgFile" accept="image/*" style="display:none">
+      <button class="btn btn-sm btn-accent" id="thoughtSend">发送</button>
     `;
     case 'body':return renderBodyInput();
     default:return '';
@@ -454,9 +541,11 @@ function renderBodyInput(){
     <select id="mealType" style="padding:8px 12px;border-radius:16px;border:1.5px solid var(--muted);background:transparent;font-size:13px;color:var(--text)">
       ${meals.map(m=>`<option value="${m}">${mealLabels[m]}</option>`).join('')}
     </select>
-    <input class="input" id="mealText" placeholder="吃了什么..." style="flex:1">
+    <textarea class="input" id="mealText" placeholder="吃了什么..." style="flex:1;height:36px" rows="1"></textarea>
+    ${pendingMealFile?`<span class="img-pending"><img src="${URL.createObjectURL(pendingMealFile)}" alt=""><span class="remove" id="mealImgRemove">×</span></span>`:''}
     <button class="btn btn-sm btn-outline" id="mealImgBtn">📷</button>
     <input type="file" id="mealImgFile" accept="image/*" style="display:none">
+    <button class="btn btn-sm btn-accent" id="mealSend">保存</button>
     <div style="display:flex;gap:6px;margin-left:auto">
       <button class="btn btn-sm btn-outline" data-bodysub="sleep" style="font-size:11px">😴</button>
       <button class="btn btn-sm btn-outline" data-bodysub="water" style="font-size:11px">💧</button>
@@ -469,6 +558,8 @@ function bindTabs(){
     t.onclick=()=>{
       activeTab=t.dataset.tab;
       if(activeTab==='body')bodySubTab='sleep';
+      sleepHistOpen=false;waterHistOpen=false;
+      pendingThoughtFile=null;pendingMealFile=null;
       render();
     };
   });
@@ -504,21 +595,41 @@ function bindInput(){
 
   // Thoughts
   const thoughtInput=document.getElementById('thoughtInput');
+  const thoughtSend=document.getElementById('thoughtSend');
+  async function submitThought(){
+    const text=thoughtInput.value.trim();
+    const file=pendingThoughtFile;
+    if(!text&&!file){toast('请输入内容或添加图片');return}
+    const finalText=text||(file?'分享了一张图片':'');
+    await saveThought(finalText,file);
+    thoughtInput.value='';
+    pendingThoughtFile=null;
+    render();
+  }
   if(thoughtInput){
-    thoughtInput.onkeydown=async e=>{
-      if(e.key==='Enter'){const text=thoughtInput.value.trim();if(!text)return;await saveThought(text,null);thoughtInput.value='';render();}
+    thoughtInput.onkeydown=e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitThought();}
     };
   }
+  if(thoughtSend)thoughtSend.onclick=submitThought;
   const thoughtImgBtn=document.getElementById('thoughtImgBtn');
   const thoughtImgFile=document.getElementById('thoughtImgFile');
   if(thoughtImgBtn&&thoughtImgFile){
     thoughtImgBtn.onclick=()=>thoughtImgFile.click();
-    thoughtImgFile.onchange=async()=>{
+    thoughtImgFile.onchange=()=>{
       const f=thoughtImgFile.files[0];if(!f)return;
-      const text=document.getElementById('thoughtInput').value.trim()||'分享了一张图片';
-      await saveThought(text,f);
-      document.getElementById('thoughtInput').value='';
+      if(pendingThoughtFile)URL.revokeObjectURL(pendingThoughtFile);
+      pendingThoughtFile=f;
       thoughtImgFile.value='';
+      render();
+    };
+  }
+  const thoughtImgRemove=document.getElementById('thoughtImgRemove');
+  if(thoughtImgRemove){
+    thoughtImgRemove.onclick=e=>{
+      e.stopPropagation();
+      if(pendingThoughtFile)URL.revokeObjectURL(pendingThoughtFile);
+      pendingThoughtFile=null;
       render();
     };
   }
@@ -535,6 +646,12 @@ function bindInput(){
     };
   }
 
+  // Sleep history toggle
+  const sleepHistToggle=document.getElementById('sleepHistToggle');
+  if(sleepHistToggle){
+    sleepHistToggle.onclick=()=>{sleepHistOpen=!sleepHistOpen;render();};
+  }
+
   // Water
   const waterAdd=document.getElementById('waterAdd');
   if(waterAdd){
@@ -545,22 +662,49 @@ function bindInput(){
     };
   }
 
+  // Water history toggle
+  const waterHistToggle=document.getElementById('waterHistToggle');
+  if(waterHistToggle){
+    waterHistToggle.onclick=()=>{waterHistOpen=!waterHistOpen;render();};
+  }
+
   // Meal
   const mealText=document.getElementById('mealText');
+  const mealSend=document.getElementById('mealSend');
+  async function submitMeal(){
+    const text=mealText.value.trim();
+    const file=pendingMealFile;
+    if(!text&&!file){toast('请输入内容或添加图片');return}
+    const finalText=text||(file?'一顿美食':'');
+    await saveMeal(finalText,file);
+    mealText.value='';
+    pendingMealFile=null;
+    render();
+  }
   if(mealText){
-    mealText.onkeydown=async e=>{
-      if(e.key==='Enter'){await saveMeal(mealText.value.trim(),null);mealText.value='';render();}
+    mealText.onkeydown=e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitMeal();}
     };
   }
+  if(mealSend)mealSend.onclick=submitMeal;
   const mealImgBtn=document.getElementById('mealImgBtn');
   const mealImgFile=document.getElementById('mealImgFile');
   if(mealImgBtn&&mealImgFile){
     mealImgBtn.onclick=()=>mealImgFile.click();
-    mealImgFile.onchange=async()=>{
+    mealImgFile.onchange=()=>{
       const f=mealImgFile.files[0];if(!f)return;
-      await saveMeal(document.getElementById('mealText').value.trim()||'一顿美食',f);
-      document.getElementById('mealText').value='';
+      if(pendingMealFile)URL.revokeObjectURL(pendingMealFile);
+      pendingMealFile=f;
       mealImgFile.value='';
+      render();
+    };
+  }
+  const mealImgRemove=document.getElementById('mealImgRemove');
+  if(mealImgRemove){
+    mealImgRemove.onclick=e=>{
+      e.stopPropagation();
+      if(pendingMealFile)URL.revokeObjectURL(pendingMealFile);
+      pendingMealFile=null;
       render();
     };
   }
@@ -626,34 +770,28 @@ function exportData(format){
 }
 
 function exportCSV(){
-  // Escape CSV field
   const esc=v=>{if(v==null)return'';const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
-
-  const BOM='﻿'; // UTF-8 BOM for Excel Chinese support
+  const BOM='﻿';
   const lines=[];
 
-  // Sheet 1: 记账
   lines.push('【记账记录】');
   lines.push(['ID','类型','金额','分类','备注','时间'].map(esc).join(','));
   data.finance.forEach(r=>{
     lines.push([r.id, r.type==='expense'?'支出':'收入', r.amount, r.cat, r.note||'', new Date(r.ts).toLocaleString('zh-CN')].map(esc).join(','));
   });
 
-  // Sheet 2: 想法
   lines.push('');lines.push('【想法记录】');
   lines.push(['ID','内容','图片数量','时间'].map(esc).join(','));
   data.thoughts.forEach(r=>{
     lines.push([r.id, r.text, r.imgIds?.length||0, new Date(r.ts).toLocaleString('zh-CN')].map(esc).join(','));
   });
 
-  // Sheet 3: 睡眠
   lines.push('');lines.push('【睡眠记录】');
   lines.push(['ID','时长(小时)','质量','时间'].map(esc).join(','));
   data.body.sleep.forEach(r=>{
     lines.push([r.id, r.hours, r.quality, new Date(r.ts).toLocaleString('zh-CN')].map(esc).join(','));
   });
 
-  // Sheet 4: 饮食
   lines.push('');lines.push('【饮食记录】');
   lines.push(['ID','内容','餐次','有图片','时间'].map(esc).join(','));
   data.body.meals.forEach(r=>{
