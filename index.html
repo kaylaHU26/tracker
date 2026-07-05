@@ -410,7 +410,7 @@ function today(){return dateKey(new Date())}
 function viewDateKey(){return viewDate?dateKey(viewDate):today()}
 
 // ============ RENDER ============
-function render(){
+function doRender(){
   const app=document.getElementById('app');
   app.innerHTML=
     renderPage('finance','💰','记账',renderFinance())+
@@ -431,6 +431,11 @@ function render(){
   bindTabs();
   bindInput();
   bindMeActions();
+  setTimeout(loadAllImgs,100);
+}
+
+function render(){
+  doRender();
 }
 
 function renderPage(id,icon,title,body){
@@ -1034,11 +1039,6 @@ function showClearDialog(){
 
 function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-const origRender=render;
-render=function(){
-  origRender();
-  setTimeout(loadAllImgs,100);
-};
 async function loadAllImgs(){
   document.querySelectorAll('img[data-img]').forEach(async img=>{
     if(!img.src||img.src===window.location.href||img.src.endsWith('#'))await loadImg(img,img.dataset.img);
