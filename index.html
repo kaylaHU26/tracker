@@ -241,6 +241,138 @@ const IMG = {
   }
 };
 
+// ============ SYNC ============
+const SYNC_KEY='tracker_sync_cfg';
+function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_KEY))||{}}catch(e){return{}}}
+function saveSyncCfg(c){localStorage.setItem(SYNC_KEY,JSON.stringify(c))}
+
+async function ghApi(path,opts={}){
+  const cfg=syncCfg();
+  if(!cfg.token||!cfg.owner||!cfg.repo)throw new Error('未配置同步');
+  const url=`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`;
+  const headers={'Authorization':`Bearer ${cfg.token}`,'Accept':'application/vnd.github.v3+json'};
+  if(opts.body){headers['Content-Type']='application/json'}
+  const res=await fetch(url,{method:opts.method||'GET',headers,body:opts.body||undefined});
+  if(!res.ok){
+    const err=await res.json().catch(()=>({}));
+    if(res.status===404)return null;
+    throw new Error(err.message||`GitHub API ${res.status}`);
+  }
+  if(res.status===204)return null;
+  return res.json();
+}
+
+async function syncPull(){
+  const cfg=syncCfg();
+  if(!cfg.token||!cfg.owner||!cfg.repo)throw new Error('请在"我"页面配置同步');
+
+  // Pull data.json
+  let remote=null;
+  try{
+    const f=await ghApi('data.json');
+    if(f&&f.content){
+      const json=atob(f.content.replace(/\s/g,''));
+      remote=JSON.parse(json);
+    }
+  }catch(e){/* file not found, start fresh */}
+
+  // Pull images we don't have locally
+  if(remote){
+    const localIds=new Set(await IMG.getAllIds());
+    if(remote._imgs){
+      for(const [id,b64] of Object.entries(remote._imgs)){
+        if(!localIds.has(id)){
+          try{
+            const byteStr=atob(b64);
+            const arr=new Uint8Array(byteStr.length);
+            for(let i=0;i<byteStr.length;i++)arr[i]=byteStr.charCodeAt(i);
+            await IMG.save(id,new Blob([arr]));
+          }catch(e){/* skip bad image */}
+        }
+      }
+    }
+    delete remote._imgs;
+  }
+
+  // Merge: remote wins for same ID, local keeps items not in remote
+  if(remote){
+    const merged=mergeData(data,remote);
+    data=merged;
+    save();
+    return true;
+  }
+  return false;
+}
+
+function mergeData(local,remote){
+  const have=new Map();
+  // index local by id
+  for(const arr of [local.finance,local.thoughts,local.body.sleep,local.body.meals]){
+    for(const r of arr)have.set(r.id,r);
+  }
+  // remote overwrites or adds
+  for(const arr of [remote.finance,remote.thoughts,remote.body.sleep,remote.body.meals]){
+    for(const r of arr)have.set(r.id,r);
+  }
+  // Rebuild
+  const out={finance:[],thoughts:[],body:{sleep:[],water:{},meals:[]}};
+  for(const [id,r]of have){
+    if(r.hasOwnProperty('amount'))out.finance.push(r);
+    else if(r.hasOwnProperty('imgIds')||(r.hasOwnProperty('text')&&!r.hasOwnProperty('meal')))out.thoughts.push(r);
+    else if(r.hasOwnProperty('quality'))out.body.sleep.push(r);
+    else if(r.hasOwnProperty('meal'))out.body.meals.push(r);
+  }
+  // Merge water (object, take higher values)
+  out.body.water={...local.body.water};
+  for(const [k,v]of Object.entries(remote.body.water||{})){
+    out.body.water[k]=Math.max(out.body.water[k]||0,v);
+  }
+  // Sort by ts
+  for(const k of ['finance','thoughts'])out[k].sort((a,b)=>a.ts-b.ts);
+  out.body.sleep.sort((a,b)=>a.ts-b.ts);
+  out.body.meals.sort((a,b)=>a.ts-b.ts);
+  return out;
+}
+
+async function syncPush(){
+  const cfg=syncCfg();
+  if(!cfg.token||!cfg.owner||!cfg.repo)throw new Error('请在"我"页面配置同步');
+
+  // Build payload: data + base64 images
+  const payload={...data,_imgs:{}};
+  const imgIds=await IMG.getAllIds();
+  for(const id of imgIds){
+    const blob=await IMG.get(id);
+    if(blob){
+      const buf=await blob.arrayBuffer();
+      const arr=new Uint8Array(buf);
+      let b64='';
+      for(let i=0;i<arr.length;i++)b64+=String.fromCharCode(arr[i]);
+      payload._imgs[id]=btoa(b64);
+    }
+  }
+
+  const json=JSON.stringify(payload);
+  const b64= btoa(unescape(encodeURIComponent(json)));
+  const body=JSON.stringify({message:'sync',content:b64});
+
+  // Check if file exists (need sha)
+  const existing=await ghApi('data.json');
+  if(existing&&existing.sha)body=JSON.stringify({message:'sync',content:b64,sha:existing.sha});
+
+  await ghApi('data.json',{method:'PUT',body});
+}
+
+let syncTimer=null;
+function autoSyncPush(){
+  const cfg=syncCfg();
+  if(!cfg.token)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(async()=>{
+    try{await syncPush();console.log('synced');}catch(e){console.log('sync failed',e.message)}
+  },2000);
+}
+
 // ============ STATE ============
 let data=DB.read();
 let activeTab='finance';
@@ -256,7 +388,7 @@ const cats=['餐饮','交通','购物','娱乐','日用','其他'];
 const meals=['breakfast','lunch','dinner','snack'];
 const mealLabels={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'零食'};
 
-function save(){DB.write(data)}
+function save(){DB.write(data);autoSyncPush()}
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 
@@ -483,6 +615,8 @@ function renderMe(){
   const totalRecs=data.finance.length+data.thoughts.length+data.body.sleep.length+data.body.meals.length;
   const now=new Date();const m=now.getMonth(),y=now.getFullYear();
   const monthExp=data.finance.filter(r=>{const d=new Date(r.ts);return d.getMonth()===m&&d.getFullYear()===y&&r.type==='expense'}).reduce((s,r)=>s+r.amount,0);
+  const cfg=syncCfg();
+  const syncConfigured=!!(cfg.token&&cfg.owner&&cfg.repo);
   return `
     <div class="stat-row">
       <div class="card stat-card"><div class="num">${totalRecs}</div><div class="lbl">总记录</div></div>
@@ -490,6 +624,23 @@ function renderMe(){
       <div class="card stat-card"><div class="num">${data.thoughts.length}</div><div class="lbl">想法</div></div>
     </div>
     <div class="card stat-card"><div class="num" style="color:var(--accent)">¥${monthExp.toFixed(2)}</div><div class="lbl">本月支出</div></div>
+    <div class="card" style="margin-top:10px">
+      <div style="font-weight:600;margin-bottom:10px">☁️ 多端同步</div>
+      ${syncConfigured?`
+        <div style="font-size:13px;color:var(--accent2);margin-bottom:8px">已配置 · 数据自动同步</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">仓库: ${escHtml(cfg.owner)}/${escHtml(cfg.repo)}</div>
+        <button class="btn btn-sm btn-accent" id="syncPushBtn" style="width:100%;margin-bottom:4px">🔄 立即同步</button>
+        <button class="btn btn-sm btn-outline" id="syncPullBtn" style="width:100%;margin-bottom:4px">📥 拉取最新数据</button>
+        <button class="btn btn-sm btn-outline" id="syncResetBtn" style="width:100%;color:var(--danger);border-color:var(--danger)">解除同步配置</button>
+      `:`
+        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">配置后可在不同设备间同步记录</div>
+        <div style="margin-bottom:6px"><input class="input" id="syncOwner" placeholder="GitHub 用户名" style="font-size:14px"></div>
+        <div style="margin-bottom:6px"><input class="input" id="syncRepo" placeholder="私有仓库名（如 tracker-sync）" style="font-size:14px"></div>
+        <div style="margin-bottom:8px"><input class="input" id="syncToken" type="password" placeholder="GitHub Token" style="font-size:14px"></div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Token 仅存在本设备，不会上传。<br>数据存储在私有仓库中，别人看不到。</div>
+        <button class="btn btn-sm btn-accent" id="syncSaveCfg" style="width:100%">保存并同步</button>
+      `}
+    </div>
     <div style="margin-top:16px">
       <div class="menu-item" data-action="export-csv"><span>📊 导出 Excel (CSV)</span><span class="arrow">›</span></div>
       <div class="menu-item" data-action="export-json"><span>📤 导出备份 (JSON)</span><span class="arrow">›</span></div>
@@ -728,6 +879,47 @@ function bindMeActions(){
       if(action==='clear')showClearDialog();
     };
   });
+
+  // Sync
+  const syncSaveCfg=document.getElementById('syncSaveCfg');
+  if(syncSaveCfg){
+    syncSaveCfg.onclick=async()=>{
+      const owner=document.getElementById('syncOwner').value.trim();
+      const repo=document.getElementById('syncRepo').value.trim();
+      const token=document.getElementById('syncToken').value.trim();
+      if(!owner||!repo||!token){toast('请填写所有字段');return}
+      saveSyncCfg({owner,repo,token});
+      try{
+        await syncPush();
+        toast('配置成功，已同步');
+        render();
+      }catch(e){toast('配置失败: '+e.message)}
+    };
+  }
+  const syncPushBtn=document.getElementById('syncPushBtn');
+  if(syncPushBtn){
+    syncPushBtn.onclick=async()=>{
+      try{await syncPush();toast('同步成功');}catch(e){toast('同步失败: '+e.message)}
+    };
+  }
+  const syncPullBtn=document.getElementById('syncPullBtn');
+  if(syncPullBtn){
+    syncPullBtn.onclick=async()=>{
+      try{
+        const changed=await syncPull();
+        if(changed){render();toast('已拉取最新数据')}else{toast('数据已是最新')}
+      }catch(e){toast('拉取失败: '+e.message)}
+    };
+  }
+  const syncResetBtn=document.getElementById('syncResetBtn');
+  if(syncResetBtn){
+    syncResetBtn.onclick=()=>{
+      showDialog('解除同步', '不会删除云端数据，仅移除本设备的同步配置。',()=>{
+        localStorage.removeItem(SYNC_KEY);
+        render();toast('同步配置已移除');
+      });
+    };
+  }
 }
 
 async function saveThought(text,file){
@@ -818,16 +1010,22 @@ function importData(){
   input.click();
 }
 
-function showClearDialog(){
+function showDialog(title,msg,onConfirm){
   const d=document.getElementById('dialog');
-  d.innerHTML=`<h3>确认清除？</h3><p>所有记录将被永久删除，无法恢复。建议先导出备份。</p><div class="btns"><button class="btn btn-outline" id="dlgCancel">取消</button><button class="btn btn-accent" id="dlgConfirm">确认清除</button></div>`;
+  d.innerHTML=`<h3>${title}</h3><p>${msg}</p><div class="btns"><button class="btn btn-outline" id="dlgCancel">取消</button><button class="btn btn-accent" id="dlgConfirm">确认</button></div>`;
   document.getElementById('overlay').classList.add('show');
   document.getElementById('dlgCancel').onclick=()=>document.getElementById('overlay').classList.remove('show');
   document.getElementById('dlgConfirm').onclick=()=>{
-    data=DB.default();save();render();
     document.getElementById('overlay').classList.remove('show');
-    toast('数据已清除');
+    onConfirm();
   };
+}
+
+function showClearDialog(){
+  showDialog('确认清除？','所有记录将被永久删除，无法恢复。建议先导出备份。',()=>{
+    data=DB.default();save();render();
+    toast('数据已清除');
+  });
 }
 
 function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
@@ -845,7 +1043,14 @@ async function loadAllImgs(){
 }
 
 // Init
-render();
+(async function init(){
+  // Try to pull remote data on load
+  const cfg=syncCfg();
+  if(cfg.token&&cfg.owner&&cfg.repo){
+    try{await syncPull();render();}catch(e){/* offline or no data yet, use local */}
+  }
+  render();
+})();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
 </body>
