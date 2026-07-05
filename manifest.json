@@ -1,0 +1,18 @@
+{
+  "name": "日常记录",
+  "short_name": "日常记录",
+  "description": "温暖日常记录工具",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FAF5EF",
+  "theme_color": "#FAF5EF",
+  "icons": [{
+    "src": "icon-192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  },{
+    "src": "icon-512.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }]
+}
